@@ -7,5 +7,6 @@ et les built-in par rapport aux pipes
 
 voir **
 voir $$ 
-et reduire les 3 fonctions qui pose des problemes due a leurs taille.
+et reduire les 3 fonctions qui pose des problemes due a leurs taille
 
+et les redirections faire des tests.
