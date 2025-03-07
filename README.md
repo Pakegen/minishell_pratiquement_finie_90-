@@ -10,3 +10,5 @@ voir $$
 et reduire les 3 fonctions qui pose des problemes due a leurs taille
 
 et les redirections faire des tests.
+
+pipe redirection meme temps verifier 
