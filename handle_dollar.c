@@ -12,8 +12,6 @@
 
 #include "minishell.h"
 
-#include "minishell.h"
-
 int	g_exit_status;
 
 static char	*append_str(char *dest, const char *src)
@@ -42,13 +40,11 @@ static char	*append_str(char *dest, const char *src)
 
 static char	*expand_var(const char *input, int *i)
 {
-	/* À partir de l’indice *i, extrait le nom de la variable
-	   et retourne sa valeur (en utilisant getenv). Si la variable
-	   spéciale "$?" est rencontrée, renvoie le code de retour. */
-	int j = *i + 1;
-	char *var_name;
-	char *value;
+	int	j;
+	char 	*var_name;
+	char 	*value;
 
+	j = *i + 1;
 	if (input[*i + 1] == '?')
 	{
 		*i += 2;
