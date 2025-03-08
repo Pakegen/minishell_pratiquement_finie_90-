@@ -79,8 +79,8 @@ static void	setup_child(int i, int prev_fd, int pipe_fd[2],
 	exit(EXIT_FAILURE);
 }
 
-static int	handle_fork_and_update(int i, int prev_fd, int pipe_fd[2],
-			t_exec_context *ctx)
+//nouvelle version pour detecter les builtin qui modifie l'env
+static int	handle_fork_and_update(int i, int prev_fd, int pipe_fd[2], t_exec_context *ctx)
 {
 	pid_t	pid;
 
@@ -93,6 +93,16 @@ static int	handle_fork_and_update(int i, int prev_fd, int pipe_fd[2],
 	if (pid == 0)
 	{
 		setup_child(i, prev_fd, pipe_fd, ctx);
+		if (is_builtin(ctx->pipeline->commands[i].args[0]))
+		{
+			execute_builtin_cmd(ctx->pipeline->commands[i].args, ctx->env);
+			exit(EXIT_SUCCESS);
+		}
+		char *cmd_path = get_command_path(ctx->pipeline->commands[i].args[0], ctx->env);
+		execve(cmd_path, ctx->pipeline->commands[i].args, ctx->env);
+		perror("execve");
+		free(cmd_path);
+		exit(EXIT_FAILURE);
 	}
 	if (prev_fd != -1)
 		close(prev_fd);
@@ -104,6 +114,7 @@ static int	handle_fork_and_update(int i, int prev_fd, int pipe_fd[2],
 	waitpid(pid, NULL, 0);
 	return (prev_fd);
 }
+
 
 void	execute_pipeline(t_pipeline *pipeline, char **env)
 {
