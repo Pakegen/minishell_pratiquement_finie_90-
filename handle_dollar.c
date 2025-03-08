@@ -12,32 +12,27 @@
 
 #include "minishell.h"
 
+#include "minishell.h"
+
 int	g_exit_status;
 
 static char	*append_str(char *dest, const char *src)
 {
-	int		len_dest;
-	int		len_src;
-	int		i;
-	int		j;
-	char	*new_str;
-
-	len_dest = ft_strlen(dest);
-	len_src = ft_strlen(src);
-	new_str = malloc(len_dest + len_src + 1);
+	size_t	len_dest = ft_strlen(dest);
+	size_t	len_src = ft_strlen(src);
+	char	*new_str = malloc(len_dest + len_src + 1);
 	if (!new_str)
 		return (NULL);
-	i = 0;
+	size_t	i = 0, j = 0;
 	while (dest && dest[i])
 	{
 		new_str[i] = dest[i];
-		i = i + 1;
+		i++;
 	}
-	j = 0;
 	while (src[j])
 	{
 		new_str[i + j] = src[j];
-		j = j + 1;
+		j++;
 	}
 	new_str[i + j] = '\0';
 	if (dest)
@@ -47,23 +42,24 @@ static char	*append_str(char *dest, const char *src)
 
 static char	*expand_var(const char *input, int *i)
 {
-	int		j;
-	char	*var_name;
-	char	*value;
+	/* À partir de l’indice *i, extrait le nom de la variable
+	   et retourne sa valeur (en utilisant getenv). Si la variable
+	   spéciale "$?" est rencontrée, renvoie le code de retour. */
+	int j = *i + 1;
+	char *var_name;
+	char *value;
 
 	if (input[*i + 1] == '?')
 	{
-		*i = *i + 2;
+		*i += 2;
 		return (ft_itoa(g_exit_status));
 	}
-	j = *i + 1;
-	while (input[j]
-		&& ((input[j] >= 'A' && input[j] <= 'Z')
-			|| (input[j] >= 'a' && input[j] <= 'z')
-			|| (input[j] >= '0' && input[j] <= '9')
-			|| input[j] == '_'))
+	while (input[j] && ((input[j] >= 'A' && input[j] <= 'Z')
+		|| (input[j] >= 'a' && input[j] <= 'z')
+		|| (input[j] >= '0' && input[j] <= '9')
+		|| input[j] == '_'))
 	{
-		j = j + 1;
+		j++;
 	}
 	var_name = ft_strndup(input + *i + 1, j - *i - 1);
 	value = getenv(var_name);
@@ -76,30 +72,37 @@ static char	*expand_var(const char *input, int *i)
 
 char	*expand_variables(const char *input)
 {
-	int		i;
-	char	*result;
-	char	*temp;
+	int		i = 0;
+	int		state = 0; /* 0 = non cité, 1 = cité en simple, 2 = cité en double */
+	char	*result = ft_strdup("");
 	char	ch[2];
 
-	i = 0;
-	result = ft_strdup("");
 	if (!result)
 		return (NULL);
 	while (input[i])
 	{
-		if (input[i] == '$')
+		if (input[i] == '\'' && state == 0)
+			state = 1;
+		else if (input[i] == '\'' && state == 1)
+			state = 0;
+		else if (input[i] == '"' && state == 0)
+			state = 2;
+		else if (input[i] == '"' && state == 2)
+			state = 0;
+		else if (input[i] == '$' && state != 1)
 		{
-			temp = expand_var(input, &i);
+			char *temp = expand_var(input, &i);
 			result = append_str(result, temp);
 			free(temp);
+			continue;
 		}
 		else
 		{
 			ch[0] = input[i];
 			ch[1] = '\0';
 			result = append_str(result, ch);
-			i = i + 1;
 		}
+		i++;
 	}
 	return (result);
 }
