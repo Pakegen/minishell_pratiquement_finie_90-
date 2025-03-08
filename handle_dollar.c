@@ -40,22 +40,27 @@ static char	*append_str(char *dest, const char *src)
 
 static char	*expand_var(const char *input, int *i)
 {
-	int	j;
-	char 	*var_name;
-	char 	*value;
+	int		j;
+	char	*var_name;
+	char	*value;
 
-	j = *i + 1;
 	if (input[*i + 1] == '?')
 	{
-		*i += 2;
+		*i = *i + 2;
 		return (ft_itoa(g_exit_status));
 	}
-	while (input[j] && ((input[j] >= 'A' && input[j] <= 'Z')
-		|| (input[j] >= 'a' && input[j] <= 'z')
-		|| (input[j] >= '0' && input[j] <= '9')
-		|| input[j] == '_'))
+	if (input[*i + 1] == '$')
 	{
-		j++;
+		*i = *i + 2;
+		return (ft_itoa(getpid()));
+	}
+	j = *i + 1;
+	while (input[j] && ((input[j] >= 'A' && input[j] <= 'Z')
+			|| (input[j] >= 'a' && input[j] <= 'z')
+			|| (input[j] >= '0' && input[j] <= '9')
+			|| input[j] == '_'))
+	{
+		j = j + 1;
 	}
 	var_name = ft_strndup(input + *i + 1, j - *i - 1);
 	value = getenv(var_name);
@@ -66,10 +71,11 @@ static char	*expand_var(const char *input, int *i)
 	return (ft_strdup(value));
 }
 
+
 char	*expand_variables(const char *input)
 {
 	int		i = 0;
-	int		state = 0; /* 0 = non cité, 1 = cité en simple, 2 = cité en double */
+	int		state = 0;
 	char	*result = ft_strdup("");
 	char	ch[2];
 
